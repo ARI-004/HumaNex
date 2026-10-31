@@ -12,7 +12,7 @@ export default function Header({ view, setView, openAuth }) {
     { id: "about", label: "About" }
   ];
 
-  return (
+  return (  
     <div style={{ position: "sticky", top: 0, zIndex: 50, background: C.ink, padding: "10px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", fontFamily: sans, borderBottom: `1px solid ${C.line}` }}>
       
       {/* LEFT MOST: Logo and Name */}
