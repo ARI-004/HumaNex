@@ -1,26 +1,14 @@
 import logoImg from "../assets/logo.jpg";
 import authBg3 from "../assets/auth_bg3.jpg";
-import React, { useState, useEffect, useMemo, useRef } from "react";
+import React, { useState } from "react";
 import {
-  AreaChart, Area, LineChart, Line, ResponsiveContainer, XAxis, YAxis, Tooltip,
-} from "recharts";
-import {
-  Heart, Droplet, Thermometer, Activity, Bell, Pill, MessageSquare, Users, User,
-  Search, ChevronRight, Send, AlertTriangle, CheckCircle2, Stethoscope,
-  Video, ShoppingBag, ClipboardList, TrendingUp, Home, Settings, LogOut,
-  Sparkles, FileText, Building2, UserPlus,
-  Calendar, CalendarDays, Wrench, Package, Truck, MapPin, BarChart3, Filter, PlusCircle,
-  ChevronDown, Boxes, AlertCircle, Clock, Circle, RefreshCw, ShieldCheck,
-  ToggleLeft, ToggleRight, Check, X, ArrowLeft, Mic, MicOff, CameraOff,
-  PhoneOff, Mail, Phone, Pencil, Trash2, Lock, ClipboardCheck, Eye,
+  User, Stethoscope, Building2, AlertCircle, CheckCircle2, Loader2,
 } from "lucide-react";
 
 import {
-  C, serif, sans, useFonts, btn, withIcon, inputStyle, Field, TextField, TextAreaField, SelectField, BackBar, Modal, Tabs, genTrend, patients, statusColor, statusBg, statusLabel, initialMedications, initialAlerts, initialConsultations, aiSuggestions, aiRespond, doctorsRoster, departments, initialAppointments, genBeds, beds, bedStatusColor, equipment, equipStatusColor, equipStatusBg, initialInventory, invStatusColor, invStatusBg, invStatusLabel, invStatusOf, orders, orderStatusColor, orderStatusBg, orderStatusLabel, deliverySteps, orderStepIndex, ecgPath, Waveform, Sparkline, Badge, Avatar, IconBtn, CallOverlay
+  C, serif, sans, btn, TextField, Waveform
 } from '../components/Shared';
-
-
-
+import { loginUser, signupUser } from "../api/auth";
 
 export function AuthPage({ role, setRole, mode, setMode, onEnter, onBackHome }) {
   const roles = [
@@ -28,12 +16,44 @@ export function AuthPage({ role, setRole, mode, setMode, onEnter, onBackHome }) 
     { id: "doctor", label: "Doctor", icon: Stethoscope },
     { id: "hospital", label: "Hospital admin", icon: Building2 },
   ];
+
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [extra, setExtra] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
 
   const extraLabel = role === "doctor" ? "Medical registration number" : role === "hospital" ? "Hospital / organization name" : "Date of birth";
+  const extraPlaceholder = role === "doctor" ? "e.g. MED-84920" : role === "hospital" ? "e.g. Apex Health Systems" : "YYYY-MM-DD";
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setErrorMessage("");
+    setSuccessMessage("");
+    setLoading(true);
+
+    try {
+      if (mode === "signin") {
+        const response = await loginUser({ email, password, role });
+        setSuccessMessage("Signed in successfully! Redirecting...");
+        setTimeout(() => {
+          onEnter(response.user.role, response.user);
+        }, 500);
+      } else {
+        const response = await signupUser({ name, email, password, role, extra });
+        setSuccessMessage("Account created successfully! Redirecting to your dashboard...");
+        setTimeout(() => {
+          onEnter(response.user.role, response.user);
+        }, 600);
+      }
+    } catch (err) {
+      setErrorMessage(err.message || "An error occurred during authentication.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", minHeight: 680, fontFamily: sans, color: C.ink }}>
@@ -58,7 +78,7 @@ export function AuthPage({ role, setRole, mode, setMode, onEnter, onBackHome }) 
           <div style={{ display: "flex", justifyContent: "center", width: "100%", marginBottom: 18 }}>
             <Waveform width={300} height={70} stroke="#3FA294" />
           </div>
-          <div style={{ fontSize: 12.5, color: "#4C6265" }}>Not a substitute for professional medical care.</div>
+          <div style={{ fontSize: 12.5, color: "#4C6265" }}>Secure Cloud Authentication &bull; Medical Data Encryption</div>
         </div>
       </div>
 
@@ -68,31 +88,88 @@ export function AuthPage({ role, setRole, mode, setMode, onEnter, onBackHome }) 
           <div style={{ fontFamily: serif, fontSize: 25, fontWeight: 600, marginBottom: 6 }}>
             {mode === "signin" ? "Welcome back" : "Create your account"}
           </div>
-          <div style={{ fontSize: 13.5, color: C.inkSoft, marginBottom: 26 }}>
+          <div style={{ fontSize: 13.5, color: C.inkSoft, marginBottom: 20 }}>
             {mode === "signin" ? "Sign in to continue to your dashboard." : "It takes less than a minute."}
           </div>
 
-          <div style={{ display: "flex", gap: 6, marginBottom: 26 }}>
+          {/* Role selector tabs */}
+          <div style={{ display: "flex", gap: 6, marginBottom: 20 }}>
             {roles.map((r) => (
-              <button key={r.id} onClick={() => setRole(r.id)} style={{
-                flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 6, padding: "12px 6px",
-                border: `1.5px solid ${role === r.id ? C.teal : C.line}`, borderRadius: 10, cursor: "pointer",
-                background: role === r.id ? C.tealPale : C.panel,
-              }}>
+              <button 
+                type="button"
+                key={r.id} 
+                onClick={() => { setRole(r.id); setErrorMessage(""); }} 
+                style={{
+                  flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 6, padding: "12px 6px",
+                  border: `1.5px solid ${role === r.id ? C.teal : C.line}`, borderRadius: 10, cursor: "pointer",
+                  background: role === r.id ? C.tealPale : C.panel,
+                  transition: "all 0.15s ease",
+                }}
+              >
                 <r.icon size={17} color={role === r.id ? C.tealDark : C.inkSoft} />
                 <span style={{ fontSize: 11.5, fontWeight: 600, color: role === r.id ? C.tealDark : C.inkSoft }}>{r.label}</span>
               </button>
             ))}
           </div>
 
-          <form onSubmit={(e) => { e.preventDefault(); onEnter(role); }}>
+          {/* Error notification */}
+          {errorMessage && (
+            <div style={{
+              display: "flex", alignItems: "flex-start", gap: 8, padding: "10px 14px",
+              background: "#FEE2E2", border: "1px solid #F87171", borderRadius: 8,
+              color: "#991B1B", fontSize: 13, marginBottom: 16
+            }}>
+              <AlertCircle size={16} style={{ marginTop: 2, flexShrink: 0 }} />
+              <div style={{ flex: 1 }}>{errorMessage}</div>
+            </div>
+          )}
+
+          {/* Success notification */}
+          {successMessage && (
+            <div style={{
+              display: "flex", alignItems: "center", gap: 8, padding: "10px 14px",
+              background: "#D1FAE5", border: "1px solid #34D399", borderRadius: 8,
+              color: "#065F46", fontSize: 13, marginBottom: 16
+            }}>
+              <CheckCircle2 size={16} style={{ flexShrink: 0 }} />
+              <div style={{ flex: 1 }}>{successMessage}</div>
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit}>
             {mode === "register" && (
-              <TextField label="Full name" placeholder="Your full name" value={name} onChange={(e) => setName(e.target.value)} required />
+              <TextField 
+                label="Full name" 
+                placeholder="Your full name" 
+                value={name} 
+                onChange={(e) => setName(e.target.value)} 
+                required 
+              />
             )}
-            <TextField label="Email address" type="email" placeholder="Enter your email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-            <TextField label="Password" type="password" placeholder="Enter your password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+            <TextField 
+              label="Email address" 
+              type="email" 
+              placeholder="Enter your email" 
+              value={email} 
+              onChange={(e) => setEmail(e.target.value)} 
+              required 
+            />
+            <TextField 
+              label="Password" 
+              type="password" 
+              placeholder="Enter your password (min 6 chars)" 
+              value={password} 
+              onChange={(e) => setPassword(e.target.value)} 
+              required 
+            />
             {mode === "register" && (
-              <TextField label={extraLabel} placeholder={extraLabel} value={extra} onChange={(e) => setExtra(e.target.value)} required />
+              <TextField 
+                label={extraLabel} 
+                placeholder={extraPlaceholder} 
+                value={extra} 
+                onChange={(e) => setExtra(e.target.value)} 
+                required 
+              />
             )}
 
             {mode === "signin" && (
@@ -104,14 +181,37 @@ export function AuthPage({ role, setRole, mode, setMode, onEnter, onBackHome }) 
               </div>
             )}
 
-            <button type="submit" style={{ ...btn.primary, width: "100%", padding: "12px 20px", marginTop: 6 }}>
-              {mode === "signin" ? "Sign in" : "Create account"}
+            <button 
+              type="submit" 
+              disabled={loading}
+              style={{ 
+                ...btn.primary, 
+                width: "100%", 
+                padding: "12px 20px", 
+                marginTop: 6,
+                opacity: loading ? 0.7 : 1,
+                cursor: loading ? "not-allowed" : "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 8,
+              }}
+            >
+              {loading && <Loader2 size={16} className="animate-spin" style={{ animation: "spin 1s linear infinite" }} />}
+              {mode === "signin" ? (loading ? "Signing in..." : "Sign in") : (loading ? "Creating account..." : "Create account")}
             </button>
           </form>
 
           <div style={{ textAlign: "center", fontSize: 13, color: C.inkSoft, marginTop: 20 }}>
             {mode === "signin" ? "New to HumaNex? " : "Already have an account? "}
-            <span style={{ color: C.teal, fontWeight: 600, cursor: "pointer" }} onClick={() => setMode(mode === "signin" ? "register" : "signin")}>
+            <span 
+              style={{ color: C.teal, fontWeight: 600, cursor: "pointer" }} 
+              onClick={() => {
+                setMode(mode === "signin" ? "register" : "signin");
+                setErrorMessage("");
+                setSuccessMessage("");
+              }}
+            >
               {mode === "signin" ? "Create an account" : "Sign in instead"}
             </span>
           </div>
@@ -123,4 +223,3 @@ export function AuthPage({ role, setRole, mode, setMode, onEnter, onBackHome }) 
     </div>
   );
 }
-

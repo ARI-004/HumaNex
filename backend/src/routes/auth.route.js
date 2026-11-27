@@ -1,20 +1,4 @@
-import express from "express"
+import authRoutes from "../../auth/routes/auth.routes.js";
 
-const router = express.Router();
-
-
-router.get("/signup",(req,res)=>{
-    res.send("Signup endpoint")
-})
-
-
-router.get("/login",(req,res)=>{
-    res.send("Login endpoint")
-})
-
-
-router.get("/logout",(req,res)=>{
-    res.send("Logout endpoint")
-})
-
-export default router;
+// Re-export routes from the auth folder in backend folder
+export default authRoutes;

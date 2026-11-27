@@ -43,7 +43,7 @@ export function AddStockPage({ onBack, onSave }) {
   );
 }
 
-export function PharmacyDashboard() {
+export function PharmacyDashboard({ onSignOut, user } = {}) {
   const [page, setPage] = useState("overview");
   const [stock, setStock] = useState(initialInventory);
   const [selectedOrder, setSelectedOrder] = useState(orders[1]);
