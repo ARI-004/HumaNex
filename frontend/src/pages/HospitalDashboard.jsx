@@ -128,7 +128,7 @@ export function FilterModal({ onClose, onApply, current }) {
   );
 }
 
-export function HospitalDashboard() {
+export function HospitalDashboard({ onSignOut, user } = {}) {
   const admissions = useMemo(() => genTrend(38, 6, 12), []);
   const occupied = beds.filter((b) => b.status !== "empty").length;
 

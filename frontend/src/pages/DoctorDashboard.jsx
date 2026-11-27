@@ -99,7 +99,7 @@ export function FullProfilePage({ patient, onBack }) {
   );
 }
 
-export function DoctorDashboard() {
+export function DoctorDashboard({ onSignOut, user } = {}) {
   const [selected, setSelected] = useState(patients[2]);
   const [view, setView] = useState("summary");
   const [callOpen, setCallOpen] = useState(false);
